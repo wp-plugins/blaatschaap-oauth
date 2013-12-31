@@ -1,0 +1,13 @@
+#blaat_auth_local, #blaat_auth_buttons {
+  display : block;
+  float   : left;
+  width   : 350px;
+  margin  : 5px;
+}
+
+#blaat_auth_local  #loginform .login-username label,
+#blaat_auth_local  #loginform .login-password label {
+  width : 125px;
+  display: inline-block;
+}
+
