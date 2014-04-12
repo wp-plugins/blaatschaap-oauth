@@ -33,9 +33,6 @@ and upload the files and directories to
 
 == Changelog ==
 
-0.1 : 
-
-Initial release
 
 0.2 :
 
@@ -46,3 +43,6 @@ Synchronised with the OAuth library. The library uses an external
 configuration file now. This configuration file is parsed and all
 new services are listed.
 
+0.1 :
+
+Initial releas
