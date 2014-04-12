@@ -4,7 +4,7 @@ Donate link: http://code.blaatschaap.be/donations/
 Tags: oauth, authentication
 Stable tag: trunk
 Requires at least: 3.7
-Tested up to: 3.8
+Tested up to: 3.8.2
 License: BSD
 License URI: http://opensource.org/licenses/BSD-3-Clause
 
@@ -21,8 +21,8 @@ OAuth provider. This plugin is uses the OAuth library by Manuel Lemos. The
 plugin allows the admin to select any from the services supported 
 out-of-the-box by the said library. Additionally it is possible to configure a 
 service manually, which means almost any site supporting the OAuth protocol can 
-be used. (there are known compatibility issues with certain OAuth providers 
-such as ВКонтакте)
+be used.  
+
 
 == Installation ==
 
@@ -36,4 +36,13 @@ and upload the files and directories to
 0.1 : 
 
 Initial release
+
+0.2 :
+
+Bugfix: BlaatSchaap Plugins Overview page was missing, and displayed an
+        error message when trying to access it.
+
+Synchronised with the OAuth library. The library uses an external
+configuration file now. This configuration file is parsed and all
+new services are listed.
 
