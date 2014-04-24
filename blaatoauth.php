@@ -3,7 +3,7 @@
 Plugin Name: BlaatSchaap OAuth 
 Plugin URI: http://code.blaatschaap.be
 Description: Log in with an OAuth Provider
-Version: 0.2
+Version: 0.3
 Author: André van Schoubroeck
 Author URI: http://andre.blaatschaap.be
 License: BSD
@@ -25,6 +25,7 @@ function blaat_register_pageoptions(){
   register_setting( 'blaat_auth_pages', 'register_page' );
   register_setting( 'blaat_auth_pages', 'link_page' );
   register_setting( 'blaat_auth_pages', 'logout_frontpage' );
+  register_setting( 'blaat_auth_pages', 'blaat_auth_custom_button' );
 }
 //------------------------------------------------------------------------------
 if (!function_exists("blaat_page_select")) {
@@ -62,9 +63,16 @@ if (!function_exists("blaat_plugins_page")) {
       return strpos($name, "BlaatSchaap") === 0;
     }
     echo "<p>";
-    _e("Installed plugins:","blaatschaap");
+    _e("Installed BlaatSchaap plugins:","blaatschaap");
     echo "</p>";
-    echo "<p><table>";
+    echo "<p><table class='blaat_plugins_table'>";
+    echo "<tr><th>";
+    _e("Plugin name:","blaatschaap");
+    echo "</th><th>";
+    _e("Plugin version:","blaatschaap");
+    echo "</th><th>";
+    _e("Status:","blaatschaap");
+    echo "</th></tr>";
     foreach ($plugins as $file => $plugin) {
      if (isBS($plugin['Name'])) {
         echo "<tr><td>".$plugin['Name']."</td><td>".$plugin['Version']."</td><td>";
@@ -92,25 +100,30 @@ if (!function_exists("blaat_plugins_auth_page")) {
 
     echo '<table class="form-table">';
 
-    echo '<tr><td>'. __("Login page","blaat_auth") .'</td><td>';
+    echo '<tr><th>'. __("Login page","blaat_auth") .'</th><td>';
     echo blaat_page_select("login_page");
     echo '</td></tr>';
     
-    echo '<tr><td>'. __("Register page","blaat_auth") .'</td><td>';
+    echo '<tr><th>'. __("Register page","blaat_auth") .'</th><td>';
     echo blaat_page_select("register_page");
     echo '</td></tr>';
 
-    echo '<tr><td>'. __("Link page","blaat_auth") .'</td><td>';
+    echo '<tr><th>'. __("Link page","blaat_auth") .'</th><td>';
     echo blaat_page_select("link_page");
     echo '</td></tr>';
 
-    echo '<tr><td>';
+    echo '<tr><th>';
     _e("Redirect to frontpage after logout", "blaat_auth") ;
-    echo "</td><td>";
+    echo "</th><td>";
     $checked = get_option('logout_frontpage') ? "checked" : "";
     echo "<input type=checkbox name='logout_frontpage' value='1' $checked>";
     echo "</td></tr>";
-     
+
+    echo '<tr><th>'. __("Custom Button CSS","blaat_auth") .'</th><td>';
+    echo "<textarea cols=70 rows=15 id='blaat_auth_custom_button_textarea' name='blaat_auth_custom_button'>";
+    echo htmlspecialchars(get_option("blaat_auth_custom_button"));
+    echo "</textarea>";
+    echo '</td></tr>';
 
     echo '</table><input name="Submit" type="submit" value="';
     echo  esc_attr_e('Save Changes') ;
@@ -122,11 +135,14 @@ if (!function_exists("blaat_plugins_auth_page")) {
 function  blaat_oauth_install() {
   global $wpdb;
   global $bs_oauth_plugin;
-
+  $dbver = 2;
+  $live_dbver = get_option( "bs_oauth_dbversion" );
   $table_name = $wpdb->prefix . "bs_oauth_sessions";
-  if($wpdb->get_var("show tables like '$table_name'") != $table_name) {
+
+  if ($dbver != live_dbver) {
+    require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
     $query = "CREATE TABLE $table_name (
-              `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,
+              `id` INT NOT NULL AUTO_INCREMENT  PRIMARY KEY ,
               `user_id` INT NOT NULL DEFAULT 0,
               `service_id` TEXT NOT NULL ,
               `token` TEXT NOT NULL ,
@@ -135,31 +151,30 @@ function  blaat_oauth_install() {
               `type` TEXT NULL DEFAULT NULL ,
               `refresh` TEXT NULL DEFAULT NULL,
               `scope` TEXT NOT NULL DEFAULT ''
-              ) ENGINE = MYISAM CHARACTER SET utf8 COLLATE utf8_general_ci COMMENT = 'OAuth Sessions';";
-    $result = $wpdb->query($query);
-  }
+              );";
+    dbDelta($query);
 
  
-  $table_name = $wpdb->prefix . "bs_oauth_services";
-  if($wpdb->get_var("show tables like '$table_name'") != $table_name) {
+    $table_name = $wpdb->prefix . "bs_oauth_services";
     $query = "CREATE TABLE $table_name (
-              `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,
+              `id` INT NOT NULL AUTO_INCREMENT  PRIMARY KEY ,
               `enabled` BOOLEAN NOT NULL DEFAULT FALSE ,
               `display_name` TEXT NOT NULL ,
               `client_name` TEXT NULL DEFAULT NULL ,
               `custom_id` INT NULL DEFAULT NULL ,
               `client_id` TEXT NOT NULL ,
               `client_secret` TEXT NOT NULL,
-              `default_scope` TEXT NOT NULL DEFAULT ''
-              ) ENGINE = MYISAM CHARACTER SET utf8 COLLATE utf8_general_ci COMMENT = 'OAuth Services';";
-    $result = $wpdb->query($query);
-  }
+              `default_scope` TEXT NOT NULL DEFAULT '',
+              `customlogo_url` TEXT NULL DEFAULT NULL,
+              `customlogo_filename` TEXT NULL DEFAULT NULL,
+              `customlogo_enabled` BOOLEAN DEFAULT FALSE
+              );";
+    dbDelta($query);
 
 
   $table_name = $wpdb->prefix . "bs_oauth_custom";
-  if($wpdb->get_var("show tables like '$table_name'") != $table_name) {
     $query = "CREATE TABLE $table_name (
-              `id` INT NOT NULL AUTO_INCREMENT PRIMARY KEY ,
+              `id` INT NOT NULL AUTO_INCREMENT  PRIMARY KEY ,
               `oauth_version` ENUM('1.0','1.0a','2.0') DEFAULT '2.0',
               `request_token_url` TEXT NULL DEFAULT NULL,
               `dialog_url` TEXT NOT NULL,
@@ -168,8 +183,9 @@ function  blaat_oauth_install() {
               `authorization_header` BOOLEAN DEFAULT TRUE,
               `offline_dialog_url` TEXT NULL DEFAULT NULL,
               `append_state_to_redirect_uri` TEXT NULL DEFAULT NULL
-              ) ENGINE = MYISAM CHARACTER SET utf8 COLLATE utf8_general_ci COMMENT = 'OAuth Custom Services';";
-    $result = $wpdb->query($query);
+              );";
+    dbDelta($query);
+    set_option( "bs_oauth_dbversion" , 2);
   }
 }
 //------------------------------------------------------------------------------
@@ -179,8 +195,8 @@ function blaat_oauth_menu() {
 
 
 
-  add_submenu_page('blaat_plugins',   __('Auth Pages',"blaat_auth") , 
-                                      __("Auth pages","blaat_auth") , 
+  add_submenu_page('blaat_plugins',   __('General Auth Settings',"blaat_auth") , 
+                                      __("General","blaat_auth") , 
                                       'manage_options', 
                                       'blaat_auth_pages_plugins', 
                                        'blaat_plugins_auth_page');
@@ -358,18 +374,26 @@ function blaat_auth_login_display(){
     $results = $wpdb->get_results("select * from $table_name where enabled=1 ",ARRAY_A);
     echo "<form>";
     foreach ($results as $result){
-      $class = "btn-auth btn-".strtolower($result['client_name']);
-      echo "<button class='$class' name=oauth_id type=submit value='".$result['id']."'>". $result['display_name']."</button>";
+      //$class = "btn-auth btn-".strtolower($result['client_name']);
+      if(!$result['customlogo_enabled']) 
+        $service=strtolower($result['client_name']); 
+      else {
+        $service="custom-".$result['id'];
+        echo "<style>.bs-auth-btn-logo-".$service." {background-image:url('" .$result['customlogo_url']."');}</style>";
+      }
+      echo "<button class='bs-auth-btn' name=oauth_id type=submit value='".$result['id']."'><span class='bs-auth-btn-logo bs-auth-btn-logo-$service'></span><span class='bs-auth-btn-text'>". $result['display_name']."</span></button>";
     }
 
     echo "</form>";
     echo "</div>";
+    echo "<style>" . htmlspecialchars(get_option("blaat_auth_custom_button")) . "</style>";
   }
 }
 //------------------------------------------------------------------------------
 function blaat_auth_link_display(){
   session_start();
   global $wpdb;
+  echo "<style>" . htmlspecialchars(get_option("blaat_auth_custom_button")) . "</style>";
   if (is_user_logged_in()) {
     if (isset($_POST['oauth_link'])){
         $_SESSION['oauth_link']=$_POST['oauth_link'];
@@ -427,10 +451,20 @@ function blaat_auth_link_display(){
     foreach ($available_services as $available_service) {
       $class = "btn-auth btn-".strtolower($available_service['client_name']);
 
+      if(!$available_service['customlogo_enabled'])
+        $service=strtolower($available_service['client_name']);
+      else {
+        $service="custom-".$available_service['id'];
+        echo "<style>.bs-auth-btn-logo-".$service." {background-image:url('" .$available_service['customlogo_url']."');}</style>";
+      }
+
+
       if (in_array($available_service['id'],$linked)) {
-        $unlinkHTML .= "<button class='$class' name='oauth_unlink' type=submit value='".$available_service['id']."'>". $available_service['display_name']."</button>";
+        $unlinkHTML .= "<button class='bs-auth-btn' name=oauth_unlink type=submit value='".$available_service['id']."'><span class='bs-auth-btn-logo bs-auth-btn-logo-$service'></span><span class='bs-auth-btn-text'>". $available_service['display_name']."</span></button>";
+        //$unlinkHTML .= "<button class='$class' name='oauth_unlink' type=submit value='".$available_service['id']."'>". $available_service['display_name']."</button>";
       } else {
-        $linkHTML .= "<button class='$class' name='oauth_link' type=submit value='".$available_service['id']."'>". $available_service['display_name']."</button>";
+        $linkHTML .="<button class='bs-auth-btn' name=oauth_link type=submit value='".$available_service['id']."'><span class='bs-auth-btn-logo bs-auth-btn-logo-$service'></span><span class='bs-auth-btn-text'>". $available_service['display_name']."</span></button>";
+        //$linkHTML .= "<button class='$class' name='oauth_link' type=submit value='".$available_service['id']."'>". $available_service['display_name']."</button>";
       }
       unset($_SESSION['oauth_id']);
       unset($_SESSION['oauth_link']);
@@ -578,8 +612,11 @@ function blaat_auth_display($content) {
   }
 }
 
-wp_register_style('necolas-css3-social-signin-buttons', plugin_dir_url(__FILE__) . 'css/auth-buttons.css');
-wp_enqueue_style( 'necolas-css3-social-signin-buttons');
+//wp_register_style('necolas-css3-social-signin-buttons', plugin_dir_url(__FILE__) . 'css/auth-buttons.css');
+//wp_enqueue_style( 'necolas-css3-social-signin-buttons');
+
+  wp_register_style("blaat_auth_btn" , plugin_dir_url(__FILE__) . "css/bs-auth-btn.css");
+  wp_enqueue_style( "blaat_auth_btn");
 
 wp_register_style("blaat_auth" , plugin_dir_url(__FILE__) . "blaat_auth.css");
 wp_enqueue_style( "blaat_auth");

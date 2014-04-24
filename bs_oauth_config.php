@@ -13,18 +13,27 @@ function blaat_oauth_add_page(){
       http://code.blaatschaap.be/bscp/oauth-plugin-for-wordpress/
     </a>
   </p>
-  <?php echo getcwd();?>
-  <form method='post' action='<?php echo $ACTION; ?>'>
+  <script>
+    function updPreview(){
+    document.getElementById("logoPreview").innerHTML="<span class='bs-auth-btn-preview bs-auth-btn-logo-" +
+    document.getElementById("service").value.toLowerCase() +"'></span>";
+    document.getElementById('display_name').value=document.getElementById("service").value;
+    
+    }
+  </script>
+  <form method='post'  enctype="multipart/form-data" action='<?php echo $ACTION; ?>'>
     <table class='form-table'>
       <tr>
         <th><label><?php _e("Service","blaat_auth");?></td>
         <td>
-          <select name='service'>
+          <!-- Firefox fix
+          http://www.miuaiga.com/index.cfm/2009/4/22/Firefox-select-onChange-when-using-keyboard--a-solution 
+          -->
+          <select name='service' id="service" onkeyup="this.blur();this.focus();" onchange="updPreview();">
           <?php 
             $oauth_servers_file = @file_get_contents(plugin_dir_path(__FILE__) . "oauth/oauth_configuration.json");
             if ($oauth_servers_file) {
               $oauth_servers = @json_decode($oauth_servers_file);
-              echo "<pre>fileCOntent:\n"; print_r($oauth_servers); echo "</pre>";
               if ($oauth_servers) {
               // services defined in code  ?>
             <option value='Facebook'>Facebook</option>
@@ -69,11 +78,28 @@ function blaat_oauth_add_page(){
             <?php } ?> 
           </select>
         </td>
+      </tr> 
+      <tr>
+        <th><label><?php _e("Display logo","blaat_auth");?></label></th>
+        <td>
+          <span class='blaat_addpage_logooption'>
+            <?php _e("Default logo","blaat_auth");?>
+            <span id="logoPreview">
+            </span>
+            <script>
+              updPreview();
+            </script>
+          </span>
+          <span class='blaat_addpage_logooption'>
+            <?php _e("Upload custom logo","blaat_auth");?>
+            <input type="file" name="newlogo">
+          </span>
+        </td>
       </tr>
       <tr>
-        <th><label><?php _e("Display name","blaat_auth");?></td>
+        <th><label><?php _e("Display name","blaat_auth");?></label></th>
         <td>
-          <input type='text' name='display_name'></input>
+          <input type='text' id='display_name' name='display_name'></input>
         </td>
       </tr>
       <tr>
@@ -100,7 +126,7 @@ function blaat_oauth_add_page(){
       </tr>
       <tr>
         <td></td>
-        <td><input type='submit' name='add_service' value='Add'></input>
+        <td><input type='submit' name='add_service' value='<?php  _e("Add");?>'></input>
       </tr>
     </table>
   </form>
@@ -123,9 +149,18 @@ function blaat_oauth_add_custom_page(){
   <form method='post' action='<?php echo $ACTION ; ?>'>
     <table class='form-table'>
       <tr>
-        <td>Display name:</td>
+        <th><label><?php _e("Display name","blaat_auth");?></label></th>
         <td>
-	  <input type='text' name='display_name'></input>
+          <input type='text' id='display_name' name='display_name'></input>
+        </td>
+      </tr>
+      <tr>
+        <th><label><?php _e("Display logo","blaat_auth");?></label></th>
+        <td>
+          <span class='blaat_addpage_logooption'>
+            <?php _e("Upload custom logo","blaat_auth");?>
+            <input type="file" name="newlogo">
+          </span>
         </td>
       </tr>
       <tr>
@@ -232,6 +267,49 @@ function blaat_oauth_add_process(){
 
   $result = $wpdb->query($query);
 
+
+
+  if ($_FILES['newlogo']['size']){
+    $uploadedfile = $_FILES['newlogo'];
+    global $bs_set_filename;
+    $bs_set_filename="cstlogo_". $wpdb->insert_id .".png";
+    $upload_overrides = array( 'test_form' => false, 'unique_filename_callback' => 'bs_upload_filename' );
+    $movefile = wp_handle_upload( $uploadedfile, $upload_overrides );
+
+    if (isset($movefile['file'])){
+      $imginfo = getimagesize($movefile['file']);
+      if ($imginfo) {
+        $image  = file_get_contents($movefile['file']);
+        $source = imagecreatefromstring($image);
+        $target = imagecreatetruecolor(32,32);
+        imagecopyresized($target,$source,0,0,0,0,32,32,$imginfo[0],$imginfo[1]);
+        imagepng($target,$movefile['file']);
+        imagedestroy($target);
+        imagedestroy($source);
+
+        $new_data=array();
+        $new_data["customlogo_url"] = $movefile['url'];
+        $new_data["customlogo_filename"] = $movefile['file'];
+        $new_data["customlogo_enabled"] = 1;
+
+        $data_id = array();
+        $service_id=$wpdb->insert_id;
+        $data_id['id']  = $wpdb->insert_id;
+
+        $wpdb->update($table_name, $new_data, $data_id);
+
+
+        // TODO :: ERROR MESSAGES HANDLING
+        // TODO :: IS IT POSSIBLE TO STORE IT ELSEWHERE? (E.G. WITHOUT DATE IN PATH)
+        // TODO :: IF NOT, REMOVE OLD FILE
+
+        //echo "file saved as " .$movefile['file'];
+        } else {_e("Image error","blaat_auth");}
+      } else {_e("Upload error","blaat_auth");};
+    } else { // no upload}
+  }
+  global $SROLLPOS;
+  $SROLLPOS="<script>location.hash = '#serv-". $service_id ."';</script>";
 }
 //------------------------------------------------------------------------------
 function blaat_oauth_add_custom_process(){
@@ -317,7 +395,51 @@ function blaat_oauth_update_service(){
   $new_data["client_secret"] = $_POST["client_secret"];
   $new_data["default_scope"] = $_POST["default_scope"];
   $new_data["enabled"] = $_POST["client_enabled"];
+  $new_data["customlogo_enabled"] = $_POST["customlogo_enabled"];
 
+  //How to detect if a file was uploaded??
+  if ($_FILES['newlogo']['size']){
+    if ( ! function_exists( 'wp_handle_upload' ) ) require_once( ABSPATH . 'wp-admin/includes/file.php' );
+    $uploadedfile = $_FILES['newlogo'];
+    global $bs_set_filename;
+    $bs_set_filename="cstlogo_".$_POST['id'].".png";
+
+    /* delete if file already exists */
+    /* PHP 5.4+ supports $path= wp_upload_dir($time)['path']; */
+    $php53 = wp_upload_dir($time); $php53_path=$php53['path'];
+    $bs_target_path=$php53_path."/$bs_set_filename";
+    //echo "<pre>"; print_r(wp_upload_dir($time)); echo "</pre>";
+    //echo "test ok: delete $bs_target_path";
+    if (file_exists($bs_target_path)) unlink($bs_target_path);  
+
+    $upload_overrides = array( 'test_form' => false, 'unique_filename_callback' => 'bs_upload_filename' );
+    $movefile = wp_handle_upload( $uploadedfile, $upload_overrides );
+    if (isset($movefile['file'])){
+      $imginfo = getimagesize($movefile['file']);
+      if ($imginfo) {
+        $image  = file_get_contents($movefile['file']);
+        $source = imagecreatefromstring($image);
+        $target = imagecreatetruecolor(32,32);
+        imagecopyresized($target,$source,0,0,0,0,32,32,$imginfo[0],$imginfo[1]); 
+        imagepng($target,$movefile['file']);
+        imagedestroy($target);
+        imagedestroy($source);
+
+        $new_data["customlogo_url"] = $movefile['url'];
+        $new_data["customlogo_filename"] = $movefile['file'];
+        $new_data["customlogo_enabled"] = 1;
+
+	// TODO :: ERROR MESSAGES HANDLING
+	// TODO :: IS IT POSSIBLE TO STORE IT ELSEWHERE? (E.G. WITHOUT DATE IN PATH)
+	// TODO :: IF NOT, REMOVE OLD FILE
+
+        //echo "file saved as " .$movefile['file'];       
+
+        } else {_e("Image error","blaat_auth");}
+      } else {_e("Upload error","blaat_auth");};
+    } else { // no upload}
+  }
+  
   $data_id = array();
   $data_id['id']  = $_POST['id'];
 
@@ -340,6 +462,15 @@ function blaat_oauth_update_service(){
     $data_id['id']  = $_POST['custom_id'];
     $wpdb->update($table_name, $new_data, $data_id);
   }
+  global $SROLLPOS;
+  $SROLLPOS="<script>location.hash = '#serv-". htmlspecialchars($_POST['id']) ."';</script>";
+
+
+}
+//------------------------------------------------------------------------------
+function bs_upload_filename(){
+  global $bs_set_filename;
+  return $bs_set_filename;
 }
 //------------------------------------------------------------------------------
 function blaat_oauth_list_services(){
@@ -364,7 +495,7 @@ function blaat_oauth_list_services(){
                     default_scope, oauth_version, request_token_url, 
                     dialog_url, access_token_url, url_parameters, 
                     authorization_header, offline_dialog_url, 
-                    append_state_to_redirect_uri
+                    append_state_to_redirect_uri, customlogo_url, customlogo_enabled
           from $table_name
           LEFT OUTER JOIN $table_name2 on ${table_name}.custom_id = ${table_name2}.id",ARRAY_A);
 
@@ -372,8 +503,8 @@ function blaat_oauth_list_services(){
   foreach ($results as $result){
     $enabled= $result['enabled'] ? "checked" : "";
     ?>
-  </pre>
-  <form method='post' action='<?php echo $ACTION ?>'>
+  <!--</pre>--> <a name="serv-<?php echo $result['id']; ?>"></a>
+  <form method='post'  enctype="multipart/form-data" action='<?php echo $ACTION ?>'>
     <input type='hidden' name='id' value='<?php echo $result['id']; ?>'>
     <table class='form-table'>
       <tr>
@@ -455,7 +586,8 @@ function blaat_oauth_list_services(){
         <?php     
       }
       ?>
-      </tr><tr>
+      </tr>
+      <tr>
         <th><label><?php _e("Display name","blaat_auth"); ?></label></th>
         <td>
           <input type='text' name='display_name' value='<?php echo $result['display_name']; ?>'></input>
@@ -480,17 +612,37 @@ function blaat_oauth_list_services(){
         </td>
       </tr>
       <tr>
+        <th><label><?php _e("Logo:","blaat_auth"); ?></label></th>
+        <td>
+          <style>.bs-auth-btn-logo-cst<?php echo $result['id'] ?> { background-image:url('<?php echo $result['customlogo_url'];?>'); }</style>
+          <?php
+          if (!$result['custom_id']) {
+            ?>
+            <span class='bs-auth-btn-preview bs-auth-btn-logo-<?php echo strtolower($result['client_name']); ?>'></span>
+            <input type='radio' name='customlogo_enabled' value='0' <?php if(!$result['customlogo_enabled']) echo "checked"; ?> > 
+            <span class='bs-auth-btn-preview bs-auth-btn-logo-cst<?php echo $result['id'] ?>'></span>
+            <input type='radio' name='customlogo_enabled' value='1'  <?php if ($result['customlogo_enabled']) echo "checked";?>  >
+            <?php } else {?>
+              <span class='bs-auth-btn-preview bs-auth-btn-logo-cst<?php echo $result['id'] ?>'></span>
+            <?php } ?>
+            <input type="file" name="newlogo">
+        </td>
+      </tr>
+
+      <tr>
         <th><label><?php _e("Enabled","blaat_auth"); ?></label></th>
         <td><input type='checkbox' name='client_enabled' value=1 <?php echo $enabled; ?>></input>
       </tr>
       <tr>
-        <td></td><td><input type='submit' name='delete_service' value='Delete'>
-        <input type='submit' name='update_service' value='Update'></input>
+        <td></td><td><input type='submit' name='delete_service' value='<?php _e("Delete");?>'>
+        <input type='submit' name='update_service' value='<?php _e("Update");?>'></input>
       </tr>
     </table>
   </form>
   <hr>
   <?php
+  global $SROLLPOS;
+  echo $SROLLPOS;
   }
 }
 //------------------------------------------------------------------------------
