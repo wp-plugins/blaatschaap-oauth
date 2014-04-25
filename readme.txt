@@ -31,6 +31,11 @@ an automated process. If manual installation is desired, extract the archive
 and upload the files and directories to
 /path/to/your/webroot/wp-content/plugins/
 
+
+== Known Incompatibilities ==
+
+This plugin is known to cause rendering issues in combination with
+WordPress SEO by Joost de Valk 
 == Changelog ==
 0.3 :
 
