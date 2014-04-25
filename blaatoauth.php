@@ -185,7 +185,7 @@ function  blaat_oauth_install() {
               `append_state_to_redirect_uri` TEXT NULL DEFAULT NULL
               );";
     dbDelta($query);
-    set_option( "bs_oauth_dbversion" , 2);
+    update_option( "bs_oauth_dbversion" , 2);
   }
 }
 //------------------------------------------------------------------------------
