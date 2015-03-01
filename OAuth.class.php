@@ -83,25 +83,25 @@ class OAuth implements AuthService {
             call_user_func($function, $client, $result['display_name']);
             $success = $client->Finalize($success);
           } else {
-            throw new Exception("missing_token");
-            /*            
+            //throw new Exception("missing_token");
+            ///*            
             _e("OAuth error: the token is missing","blaat_auth");
             echo $client->error;
-            */
+            //*/
           }
         } else {
-            throw new Exception("processing_error");
-          /*
+            //throw new Exception("processing_error");
+          ///*
           _e("OAuth error: processing error","blaat_auth");
           echo $client->error;
-          */
+          //*/
         }
       } else {
-        throw new Exception("initialisation_error");
-        /*
+        //throw new Exception("initialisation_error");
+        ///*
         _e("OAuth error: initialisation error","blaat_auth");
         echo $client->error;
-        */
+        //*/
       } 
     } 
   }

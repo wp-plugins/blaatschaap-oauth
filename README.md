@@ -4,7 +4,7 @@ Donate link: http://code.blaatschaap.be/donations/
 Tags: oauth, authentication
 Stable tag: trunk
 Requires at least: 3.7
-Tested up to: 4.1
+Tested up to: 4.1.1
 License: BSD
 License URI: http://opensource.org/licenses/BSD-3-Clause
 
@@ -32,6 +32,10 @@ and upload the files and directories to
 /path/to/your/webroot/wp-content/plugins/
 
 == Changelog ==
+0.3.6 :
+
+Bugfix "option page not found"
+
 0.3.5 :
 
 Bugfix: Previous versions allowed a logged in user to link to an already
