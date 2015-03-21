@@ -1,0 +1,181 @@
+Where to find logos
+
+Facebook:
+
+Easy to find, first google hit
+
+Site      : https://www.facebookbrand.com/
+
+---
+
+Google:
+
+Medium hard to find
+
+https://developers.google.com/+/api/openidconnect/
+
+For Google SSO, it appears the Google+ logo should be used.??
+
+Site:       https://developers.google.com/+/branding-guidelines
+Download:   https://developers.google.com/+/images/branding/gplus-icons.zip
+
+
+Or... 
+
+Site:       https://developers.google.com/identity/branding-guidelines
+Download:   https://developers.google.com/identity/images/signin-assets.zip
+
+
+At the current stage, i appears the second should be used
+
+API support : OpenID Connect
+--------------------------------------------------------------------------------
+
+Microsoft
+
+Imposible to find, 
+it's even hard to find where to register an app to use with SSO.
+It's that I have a link on my site...
+There it sends me to documentation "OneDrive API"
+Even though I am not planning to use any storage, that seems the only
+logo provided
+
+Site:     https://msdn.microsoft.com/onedrive/dn673556
+Download: http://go.microsoft.com/FwLink/p/?LinkID=390496
+
+The Download link is located in-line text "this zipfile", not easy to find
+when looking for a download
+
+There is Microsoft sign in guidelines
+https://msdn.microsoft.com/en-us/library/windows/apps/xaml/hh968445.aspx
+but that appears to be for Metro apps, not for sso usage
+--------------------------------------------------------------------------------
+
+LinkedIn
+
+easy to find
+
+Second Google hit: https://brand.linkedin.com/
+
+--------------------------------------------------------------------------------
+Twitter
+
+Easy to find
+
+https://about.twitter.com/press/brand-assets
+
+--------------------------------------------------------------------------------
+
+Yahoo
+
+Login with openid buttons https://developer.yahoo.com/openid/loginbuttons.html
+-- not suitable
+
+To look at alter https://developer.yahoo.com/openid/
+---
+https://info.yahoo.com/press-center/logos-images : only wide logos... 
+no square logo
+
+http://www.findthatlogo.com/yahoo-logos/ <-- take one from there??
+
+--------------------------------------------------------------------------------
+
+Another possibility:
+
+Logo pack http://www.flaticon.com/packs/simpleicon-social-media
+--- so no official logos... but well... logos in one style... but if one is 
+missing...
+---
+
+--------------------------------------------------------------------------------
+
+Tumblr:
+
+First google hit: https://www.tumblr.com/logo
+
+--------------------------------------------------------------------------------
+
+Vimeo:
+
+First Google hit: https://vimeo.com/about/brand_guidelines
+
+--------------------------------------------------------------------------------
+
+VK:
+
+Second google hit: http://vk.com/about
+
+--------------------------------------------------------------------------------
+
+WordPress:
+
+First Google hit: https://wordpress.org/about/logos/
+
+--------------------------------------------------------------------------------
+
+Yandex:
+
+
+Little clicking
+http://company.yandex.com/general_info/logotype.xml
+
+--------------------------------------------------------------------------------
+
+Paypal:
+
+first google
+https://www.paypal.com/nl/webapps/mpp/logo-center
+
+--------------------------------------------------------------------------------
+
+
+Amazon
+
+First google
+http://phx.corporate-ir.net/phoenix.zhtml?c=176060&p=irol-logos
+
+--------------------------------------------------------------------------------
+
+Bitbucket
+
+Little clicing
+https://design.atlassian.com/2.0/how-we-design/resources/
+-->
+https://www.dropbox.com/sh/plg87rebd0jgxpm/AADSVrlULeUwPX245IBgJH5Ba?dl=0
+
+--------------------------------------------------------------------------------
+Bitly
+
+little clicking around -- no square logo
+https://bitly.com/pages/press
+
+--------------------------------------------------------------------------------
+
+Dropbox
+
+fist hit https://www.dropbox.com/branding
+--------------------------------------------------------------------------------
+
+Etsy
+
+Logo guidelines... but the logo itself?
+
+ah... at press... again no square
+--------------------------------------------------------------------------------
+
+Flickr
+
+ok, easy to find 
+https://www.flickr.com/about/goodies/
+--------------------------------------------------------------------------------
+
+Github
+
+First google https://github.com/logos
+---
+meetup
+
+
+one click after first hit
+http://help.meetup.com/customer/portal/articles/1802998-promotional-materials-for-your-meetup-group
+
