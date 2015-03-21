@@ -15,7 +15,7 @@ function bsoauth_add_page(){
   </p>
   <script>
     function updPreview(){
-    document.getElementById("logoPreview").innerHTML="<span class='bs-auth-btn-preview bs-auth-btn-logo-" +
+    document.getElementById("logoPreview").innerHTML="<span class='bs-auth-btn-preview bs-auth-btn-logo-blaat_oauth-" +
     document.getElementById("service").value.toLowerCase() +"'></span>";
     document.getElementById('display_name_2').value=document.getElementById("service").value;
     
@@ -295,7 +295,10 @@ function bsoauth_add_process(){
         $image  = file_get_contents($movefile['file']);
         $source = imagecreatefromstring($image);
         $target = imagecreatetruecolor(32,32);
-        imagecopyresized($target,$source,0,0,0,0,32,32,$imginfo[0],$imginfo[1]);
+        imagesavealpha($target, true);
+        $trans_colour = imagecolorallocatealpha($target, 0, 0, 0, 127);
+        imagefill($target, 0, 0, $trans_colour);
+        imagecopyresized($target,$source,1,1,0,0,30,30,$imginfo[0],$imginfo[1]); 
         imagepng($target,$movefile['file']);
         imagedestroy($target);
         imagedestroy($source);
@@ -434,7 +437,10 @@ function bsoauth_update_service(){
         $image  = file_get_contents($movefile['file']);
         $source = imagecreatefromstring($image);
         $target = imagecreatetruecolor(32,32);
-        imagecopyresized($target,$source,0,0,0,0,32,32,$imginfo[0],$imginfo[1]); 
+        imagesavealpha($target, true);
+        $trans_colour = imagecolorallocatealpha($target, 0, 0, 0, 127);
+        imagefill($target, 0, 0, $trans_colour);
+        imagecopyresized($target,$source,1,1,0,0,30,30,$imginfo[0],$imginfo[1]); 
         imagepng($target,$movefile['file']);
         imagedestroy($target);
         imagedestroy($source);
@@ -482,9 +488,11 @@ function bsoauth_update_service(){
 
 }
 //------------------------------------------------------------------------------
-function bs_upload_filename(){
-  global $bs_set_filename;
-  return $bs_set_filename;
+if (!function_exists("bs_upload_filename")) {
+  function bs_upload_filename(){
+    global $bs_set_filename;
+    return $bs_set_filename;
+  }
 }
 //------------------------------------------------------------------------------
 function bsoauth_list_services(){
@@ -638,7 +646,7 @@ function bsoauth_list_services(){
           <?php
           if (!$result['custom_id']) {
             ?>
-            <span class='bs-auth-btn-preview bs-auth-btn-logo-<?php echo strtolower($result['client_name']); ?>'></span>
+            <span class='bs-auth-btn-preview bs-auth-btn-logo-blaat_oauth-<?php echo strtolower($result['client_name']); ?>'></span>
             <input type='radio' name='customlogo_enabled' value='0' <?php if(!$result['customlogo_enabled']) echo "checked"; ?> > 
             <span class='bs-auth-btn-preview bs-auth-btn-logo-cst<?php echo $result['id'] ?>'></span>
             <input type='radio' name='customlogo_enabled' value='1'  <?php if ($result['customlogo_enabled']) echo "checked";?>  >
@@ -663,6 +671,162 @@ function bsoauth_list_services(){
   <?php
   global $SROLLPOS;
   echo $SROLLPOS;
+  }
+}
+//------------------------------------------------------------------------------
+
+//------------------------------------------------------------------------------
+function bsoauth_menu() {
+
+  if (!blaat_page_registered('blaat_plugins')){
+    add_menu_page('BlaatSchaap', 'BlaatSchaap', 'manage_options', 'blaat_plugins', 'blaat_plugins_page');
+    //add_submenu_page('blaat_plugins', "" , "" , 'manage_options', 'blaat_plugins', 'blaat_plugins_page');
+  }
+
+//  add_menu_page('BlaatSchaap', 'BlaatSchaap', 'manage_options', 'blaat_plugins', 'blaat_plugins_page');
+//  add_submenu_page('blaat_plugins', "" , "" , 'manage_options', 'blaat_plugins', 'blaat_plugins_page');
+
+
+
+  add_submenu_page('blaat_plugins',   __('General Auth Settings',"blaat_auth") , 
+                                      __("General Auth","blaat_auth") , 
+                                      'manage_options', 
+                                      'bsauth_pages_plugins', 
+                                       'blaat_plugins_auth_page');
+  add_submenu_page('blaat_plugins' ,  __('OAuth Configuration',"blaat_auth"), 
+                                      __('OAuth Configuration',"blaat_auth"), 
+                                      'manage_options', 
+                                      'bsoauth_services', 
+                                      'bsoauth_config_page' );
+  add_submenu_page('blaat_plugins' ,  __('OAuth Add Service',"blaat_auth"),   
+                                      __('OAuth Add',"blaat_auth"), 
+                                      'manage_options', 
+                                      'bsoauth_add', 
+                                      'bsoauth_add_page' );
+  add_submenu_page('blaat_plugins' ,  __('OAuth Add Custom Service',"blaat_auth"),   
+                                      __('OAuth Add Custom',"blaat_auth"), 
+                                      'manage_options', 
+                                      'bsoauth_custom', 
+                                      'bsoauth_add_custom_page' );
+  add_action( 'admin_init', 'bsauth_register_options' );
+}
+//------------------------------------------------------------------------------
+function bsoauth_config_page() {
+	if ( !current_user_can( 'manage_options' ) )  {
+		wp_die( __( 'You do not have sufficient permissions to access this page.' ) );
+	}
+	echo '<div class="wrap">';
+        screen_icon();
+        echo "<h2>";
+        _e("BlaatSchaap OAuth Configuration","blaat_auth");
+        echo "</h2>";
+        ?><p><?php  _e("Documentation:","blaat_auth");?>
+          <a href="http://code.blaatschaap.be/bscp/oauth-plugin-for-wordpress/" target="_blank">
+            http://code.blaatschaap.be/bscp/oauth-plugin-for-wordpress/
+          </a>
+        </p><?php
+
+        if ($_POST['add_service']) bsoauth_add_process();
+        if ($_POST['add_custom_service']) bsoauth_add_custom_process();
+        if ($_POST['delete_service']) bsoauth_delete_service();
+        if ($_POST['update_service']) bsoauth_update_service();
+        echo "<h2>"; _e("Configured Services","blaat_auth"); echo "</h2><hr>";
+        bsoauth_list_services();
+        echo '<hr>';
+
+}
+//------------------------------------------------------------------------------
+if (!function_exists("blaat_plugins_auth_page_signup_option")) {
+  function blaat_plugins_auth_page_signup_option($option_name){
+    $option_field = "bs_auth_signup_${option_name}";    
+    $option_value = get_option($option_field);
+
+    echo '<tr><th>';
+    // This can not be auto translated! 
+    _e("Requirements for $option_name", "blaat_auth") ;
+    echo "</th><td>";
+    echo "<select name='" . htmlspecialchars($option_field) . "'>";
+
+    $selected = ($option_value=="Disabled") ? "selected='selected'" : "";
+    echo "<option value='Disabled' $selected>";
+    _e("Disabled" , "blaat_auth");
+    echo  "</option>";
+
+    $selected = ($option_value=="Optional") ? "selected='selected'" : "";
+    echo "<option value='Optional' $selected>";
+    _e("Optional" , "blaat_auth");
+    echo  "</option>";
+
+    $selected = ($option_value=="Required") ? "selected='selected'" : "";
+    echo "<option value='Required' $selected>";
+    _e("Required" , "blaat_auth");
+    echo  "</option>";
+
+
+    echo "</select>";
+    echo "</td></tr>";
+
+    
+  }
+}
+//------------------------------------------------------------------------------
+if (!function_exists("blaat_plugins_auth_page")) {
+  function blaat_plugins_auth_page(){
+    echo '<div class="wrap">';
+    echo '<h2>';
+    _e("BlaatSchaap WordPress Authentication Plugins","blaat_auth");
+    echo '</h2>';
+    echo '<form method="post" action="options.php">';
+    settings_fields( 'bs_auth_pages' ); 
+
+    echo '<table class="form-table">';
+
+    echo '<tr><th>'. __("Login page","blaat_auth") .'</th><td>';
+    echo blaat_page_select("login_page");
+    echo '</td></tr>';
+    
+    echo '<tr><th>'. __("Register page","blaat_auth") .'</th><td>';
+    echo blaat_page_select("register_page");
+    echo '</td></tr>';
+
+    echo '<tr><th>'. __("Link page","blaat_auth") .'</th><td>';
+    echo blaat_page_select("link_page");
+    echo '</td></tr>';
+
+    echo '<tr><th>';
+    _e("Redirect to frontpage after logout", "blaat_auth") ;
+    echo "</th><td>";
+    $checked = get_option('logout_frontpage') ? "checked" : "";
+    echo "<input type=checkbox name='logout_frontpage' value='1' $checked>";
+    echo "</td></tr>";
+
+    echo '<tr><th>'. __("Custom Button CSS","blaat_auth") .'</th><td>';
+    echo "<textarea cols=70 rows=15 id='bsauth_custom_button_textarea' name='bsauth_custom_button'>";
+    echo htmlspecialchars(get_option("bsauth_custom_button"));
+    echo "</textarea>";
+    echo '</td></tr>';
+
+    /* 
+        Preparations for future support
+        Note: string generation cannot be automised
+        Meaning, outer code should be moved back here, 
+                          inner code done by function.
+    blaat_plugins_auth_page_signup_option("user_url");
+    blaat_plugins_auth_page_signup_option("user_email");
+    blaat_plugins_auth_page_signup_option("display_name");
+    blaat_plugins_auth_page_signup_option("nickname");
+    blaat_plugins_auth_page_signup_option("first_name");
+    blaat_plugins_auth_page_signup_option("last_name");
+    blaat_plugins_auth_page_signup_option("description");
+    blaat_plugins_auth_page_signup_option("jabber");
+    blaat_plugins_auth_page_signup_option("aim");
+    blaat_plugins_auth_page_signup_option("yim");
+    */
+
+    echo '</table><input name="Submit" type="submit" value="';
+    echo  esc_attr_e('Save Changes') ;
+    echo '" ></form></div>';
+
   }
 }
 //------------------------------------------------------------------------------
