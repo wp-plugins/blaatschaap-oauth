@@ -1,4 +1,4 @@
-=== BlaatSchaap OAuth ===
+=== BlaatSchaap SSO: OAuth Consumer ===
 Contributors: GromBeestje
 Donate link: http://code.blaatschaap.be/donations/
 Tags: oauth, authentication, sso
@@ -8,8 +8,11 @@ Tested up to: 4.1.1
 License: BSD
 License URI: http://opensource.org/licenses/BSD-3-Clause
 
-This plugin allows your users to sign in with any OAuth provider.
-There are many pre-configured sites such as Facebook, Google and Microsoft.
+This plugin turns your WordPress website into an OAuth Consumer.
+It allowsallows your users to sign in with any OAuth provider.
+This plugin comes with many pre-configured sites such as Facebook, 
+Google, LinkedIn, Microsoft, Twitter, Tumblr and many others. It
+is possible to configure any OAuth Provider with this plugin.
 
 == Description ==
 
@@ -20,7 +23,7 @@ The OAuth plugin for WordPress allows you to provide authentication against any
 OAuth provider. This plugin is uses the OAuth library by Manuel Lemos. The
 plugin allows the admin to select any from the services supported
 out-of-the-box by the said library. Additionally it is possible to configure a
-service manually, which means almost any site supporting the OAuth protocol can
+service manually, which means any site supporting the OAuth protocol can
 be used.
 
 
