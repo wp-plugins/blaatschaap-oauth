@@ -27,7 +27,8 @@ if (!function_exists("bsauth_register_options")) {
 //------------------------------------------------------------------------------
 if (!function_exists("bsauth_buttons_sort")) {
   function bsauth_buttons_sort($a, $b) {
-          return $a["display_order"] < $b["display_order"];
+    if ($a["order"] == $b["order"]) return 0;
+    return ($a["order"] < $b["order"]) ? -1 : 1;
   }
 }
 //------------------------------------------------------------------------------
