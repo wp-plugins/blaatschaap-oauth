@@ -70,6 +70,10 @@ class OAuth implements AuthService {
   }
 //------------------------------------------------------------------------------
   public function Delete($user_id){
+    global $wpdb;
+    $table_name = $wpdb->prefix . "bs_oauth_sessions";
+    $query = $wpdb->prepare ("Delete from $table_name where user_id = %d", $user_id);
+    $wpdb->query($query);
   }
 
 //------------------------------------------------------------------------------
@@ -139,7 +143,7 @@ class OAuth implements AuthService {
 
       foreach ($available_services as $available_service) {
         $button = array();
-        $button['class'] = $class;
+        //$button['class'] = $class;
 
         if(!$available_service['customlogo_enabled'])
           $service=strtolower($available_service['client_name']);
@@ -175,15 +179,19 @@ class OAuth implements AuthService {
 
 
 
+    /*
+      Is this code still needed? Looks like a fragment of code that no longer
+      has any meaning
 
     if ($_POST['bsauth_display']) {
       $_REQUEST['bsoauth_id'] = $_POST['bsauth_display'];
       $_SESSION['bsauth_display'] = $_POST['bsauth_display'];
     }
+    */
 
-//    if ($_REQUEST['bsoauth_id'] ||  $_REQUEST['code'] || $_REQUEST['oauth_token'] ) {
+
   
-      if ($_REQUEST['bsoauth_id']) $_SESSION['bsoauth_id']=$_REQUEST['bsoauth_id'];
+      if (isset($_REQUEST['bsoauth_id'])) $_SESSION['bsoauth_id']=$_REQUEST['bsoauth_id'];
 
 
 
@@ -197,7 +205,7 @@ class OAuth implements AuthService {
 
 
       // DEBUGGING
-      $client->debug=true;
+      $client->debug=false;
 
 
       $client->configuration_file = plugin_dir_path(__FILE__) . '../oauth/oauth_configuration.json';
@@ -256,6 +264,9 @@ class OAuth implements AuthService {
   }
 //------------------------------------------------------------------------------
   public function  install() {
+    if (!get_option("bs_auth_signup_user_email")) 
+      update_option("bs_auth_signup_user_email","Required");
+
     global $wpdb;
     global $bs_oauth_plugin;
     $dbver = 4;
@@ -379,6 +390,7 @@ class OAuth implements AuthService {
                                                       $user_id , $service_id , $token , $expiry , $scope  );
         $wpdb->query($query);
         printf( __("Your %s account has been linked", "blaat_auth"), $service );
+        unset($_SESSION['bsauth_link']);
         
       }
 
@@ -434,10 +446,12 @@ class OAuth implements AuthService {
         header("Location: ".site_url("/".get_option("login_page")));     
       } else {
         $_SESSION['bsauth_register'] = "blaat_oauth-$service_id";
+        /*
         $_SESSION['oauth_signup']  = 1;
         $_SESSION['oauth_token']   = $client->access_token;
         $_SESSION['oauth_expiry']  = $client->access_token_expiry;
         $_SESSION['oauth_scope']   = $client->scope;
+        */
         $_SESSION['bsauth_fetch_data'] = 0;
         $_SESSION['bsauth_register_auto'] = 0;
         header("Location: ".site_url("/".get_option("register_page")));

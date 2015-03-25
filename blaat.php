@@ -1,4 +1,8 @@
 <?php
+/*
+
+
+
 //------------------------------------------------------------------------------
 // BlaatSchaap TextDomain
 //------------------------------------------------------------------------------
@@ -15,8 +19,7 @@ if (!function_exists("blaat_autoloader")) {
   spl_autoload_register('blaat_autoloader');
 }
 */
-require_once("classes/AuthService.class.php");
-require_once("classes/OAuth.class.php");
+
 
 //------------------------------------------------------------------------------
 // BlaatSchaap Plugins Page
@@ -110,11 +113,26 @@ if (!function_exists("blaat_page_select")) {
   }
 }
 //-----------------------------------------------------------------------------
-
-
-
+if (!function_exists("blaat_has_session_started")){
+  function blaat_has_session_started(){
+    if ( php_sapi_name() !== 'cli' ) {
+      if ( version_compare(phpversion(), '5.4.0', '>=') ) {
+        return session_status() === PHP_SESSION_ACTIVE;
+      } else {
+        return strlen(session_id());
+      }
+    }
+    return false;
+  }
+}
 //------------------------------------------------------------------------------
 
+if (!function_exists("blaat_session_start")){
+  function blaat_session_start(){
+    if(!(blaat_has_session_started())) session_start();
+  }
+}
+//------------------------------------------------------------------------------
 
 //------------------------------------------------------------------------------
 
