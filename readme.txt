@@ -8,6 +8,17 @@ Tested up to: 4.1.1
 License: BSD
 License URI: http://opensource.org/licenses/BSD-3-Clause
 
+Intermediate release: NOTE:: There are some issues with the
+current implementation. The current implementation might not
+work with all OAuth implementations. Known to work with:
+Twitter and github, Known to have issues: Facebook and Google.
+
+These issues will be resolved in the next release. The next
+release includes a major rewrite of the code, and I cannot
+give a predicted release date yet.
+
+===
+
 This plugin turns your WordPress website into an OAuth Consumer.
 It allowsallows your users to sign in with any OAuth provider.
 This plugin comes with many pre-configured sites such as Facebook, 

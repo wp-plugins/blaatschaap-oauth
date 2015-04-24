@@ -3,7 +3,7 @@
 Plugin Name: BlaatSchaap SSO: OAuth Consumer 
 Plugin URI: http://code.blaatschaap.be
 Description: Log in with an OAuth Provider
-Version: 0.4.2
+Version: 0.4.3
 Author: André van Schoubroeck
 Author URI: http://andre.blaatschaap.be
 License: BSD
@@ -55,6 +55,19 @@ add_action("wp_enqueue_scripts",  "bsoauth_styles" );
 add_action("admin_menu",          "bsoauth_menu");
 add_filter("the_content",         "bsauth_display" );
 add_action("wp_loaded",           "bsoauth_init" );
+
+// 0.4.3 -- interim release -- token bug notice
+
+function bsoauth_tokenbug_notice() {
+    ?>
+    <div class="updated">
+        <p>
+		Thank you for using BlaatSchaap OAuth login. Notice: there is a problem with the current implementation, causing the plugin not to work reliable with all services. Known to cause problems with Facebook and Google. Appears to work with Twitter and github. A new version is in progress, which will address these issues. As this new version involves a major rewrite I cannot give an estimate release date yet. Given the issues at this time I cannot recommend the current version in a production enviornment. Note: customised versions are not affected with this issue.
+	</p>
+    </div>
+    <?php
+}
+add_action( 'admin_notices', 'bsoauth_tokenbug_notice' );
 
 
 

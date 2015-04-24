@@ -434,7 +434,7 @@ class OAuth implements AuthService {
       $token = $client->access_token;
       $table_name = $wpdb->prefix . "bs_oauth_sessions";
 
-      $query = $wpdb->prepare("SELECT `user_id` FROM $table_name WHERE `service_id` = %d AND `token` = %d",$service_id,$token);  
+      $query = $wpdb->prepare("SELECT `user_id` FROM $table_name WHERE `service_id` = %d AND `token` = %s",$service_id,$token);  
       $results = $wpdb->get_results($query,ARRAY_A);
       $result = $results[0];
 
